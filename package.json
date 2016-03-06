@@ -1,0 +1,22 @@
+{
+  "name": "stopgapjs_sm",
+  "description": "State machine for front or back in JS.",
+  "version": "0.0.3",
+  "license": "MIT",
+  "author": {
+    "name": "François Chabrou",
+    "email": "developer@stopgapjs.org",
+    "url": "http://www.stopgapjs.org"
+  },
+  "main": "./sm.js",
+  "homepage": "http://www.stopgapjs.org",
+  "dependencies": {
+    "requirejs": ">=2.1.14",
+    "amdefine": ">=0.1.0",
+    "jsonschema": "1.1.0"
+  },
+  "engines": {
+    "node": ">= 0.8"
+  },
+  "readme": "readme.md"
+}
