@@ -6,21 +6,23 @@ define([], function() {
 
   ClassP.init = function(config) {
     var self = this
-    self._statesHash = {}
+    this._listenerIdx = 0
+    this._listenersByType = {}
+    self._statesById = {}
 
-    // stores states by ref in a hash with .id as key
+    // Stores states by ref in a hash with .id as key
     config.states.forEach(function(state) {
-        self._statesHash[state.id] = state
+        self._statesById[state.id] = state
 				//self.
       })
 
-    // root state
+    // Current state
     self._curStateId = config.rootStateId
 
-    // store transition in a hash with .id as key
-    // store transitions which move from states, in hash with state.id as key
+    // Store transition in a hash with .id as key
+    // Store transitions which move from states, in hash with state.id as key
     config.transitions.forEach(function(transition) {
-        self._transitionsHash[transition.id] = transition
+        self._transitionsH[transition.id] = transition
         if (! self._states2Trans[transition.srcStateId]) {
           self._statesId2Trans[transition.srcStateId] = []
         }
@@ -29,7 +31,7 @@ define([], function() {
   }
 
   ClassP.getCurState = function() {
-    return this._statesHash[this._curStateId]
+    return this._statesById[this._curStateId]
   }
 
   var State_getAvailableTrans = function() {
@@ -37,7 +39,7 @@ define([], function() {
   }
 
   ClassP._injectMethodsIntoState = function(state) {
-		state._sgjsm = this;
+		state._sgjsm = this
 		state.getAvailableTrans = State_getAvailableTrans
   }
 
@@ -50,34 +52,40 @@ define([], function() {
 		transition.execute = Transition_execute;
   }
 
-
 	ClassP.addEventListener = function(type, cbk) {
-		if (typeof type === "string" && typeof cbk === "function" && type && cbk) {
-			this._listenerId++
+    // pre
+		console.assert(typeof type === "string" && typeof cbk === "function" && type && cbk, "Arg 'Type' (string) of event must be given, as well as cbk (function)") {
 
-			var listener = {
-				type 	: type,
-				cbk 	: cbk
-			}
+    this._listenerIdx++
 
-			if (! this._listenersHash[type]) {
-				this._listenersHash[type] = {}
-			}
-			this._listenersHash[type][this.listenerId] = listener
-		} else {
-			throw "not valid EventListener adding"
+		var listener = {
+			type 	: type,
+			cbk 	: cbk
 		}
+    this._listeners[this._listenerIdx] = listener
+		if (! this._listenersByType[type]) {
+			this._listenersByType[type] = {}
+		}
+		this._listenersByType[type].push(listener)
+    listener.arrayIdx = this._listenersByType[type].length
 	}
+
+
+  ClassP.removeEventListener = function(listenerIdx) {
+
+    this._listeners[listenerIdx] = undefined
+  }
 
 	/*event = new CustomEvent(attribName, { "detail" : { "exec" : true, "after" : true }})
                   self.dispatchEvent(event)
 								*/
-	ClassP.dispatchEvent = function(type, obj) {
+	ClassP.dispatchEvent = function(event) {
+    var listeners = this._listenersByType[event.type]
 
-		if (this._listenersHash[type]) {
-			for (var i in this._listenersHash[eventName]) {
-				console.assert(i.cbk, 'cbk is not define for listener')
-				i.cbk(type, obj);
+		if (listeners) {
+			for (var ct = 0; ct < listeners.length; ct++) {
+				console.assert(listeners[ct].cbk, 'cbk is not define for listener')
+				listeners[ct].cbk(event)
 			}
 		}
 	}
