@@ -2,21 +2,24 @@ define([], function() {
   "use strict"
 
   var StopGapJs_Sm = function() {}
-  var ClassP = StopGapJs_sm.prototype
+  var ClassP = StopGapJs_Sm.prototype
 
   ClassP.init = function(config) {
     var self = this
-    this._listenerIdx = 0
-    this._listenersByType = {}
+    self._listenerIdx = 0
+    self._listenersByType = {}
     self._statesById = {}
-
+    self._transitionsByStateId = {}
+    self._listeners = []
     // Stores states by ref in a hash with .id as key
     config.states.forEach(
       function(state) {
         self._statesById[state.id] = state
+        self._injectMethodsIntoState(state)
       } )
 
     // Current state
+    console.assert(self._statesById[config.rootStateId], 'rootStateId does not exist in states')
     self._curStateId = config.rootStateId
 
     // Store transition in a hash with .id as key
@@ -27,11 +30,12 @@ define([], function() {
         console.assert(transition.type, "type of transition must be set in transition object")
         console.assert(transition.srcStateId, "srcStateId must been set in transition object")
 
-        if (! self._states2Trans[transition.srcStateId]) {
-          self._statesId2Trans[transition.srcStateId] = {}
+        self._injectMethodsIntoTrans(transition)
+        if (! self._transitionsByStateId[transition.srcStateId]) {
+          self._transitionsByStateId[transition.srcStateId] = {}
         }
-        console.assert(self._statesId2Trans[transition.srcStateId][transition.type] === undefined, "only one transition of each type is allowed for one state as source of this transition")
-        self._statesId2Trans[transition.srcStateId][transition.type] = transition;
+        console.assert(self._transitionsByStateId[transition.srcStateId][transition.type] === undefined, "only one transition of each type is allowed for one state as source of this transition")
+        self._transitionsByStateId[transition.srcStateId][transition.type] = transition;
       })
     return this
   }
@@ -41,18 +45,21 @@ define([], function() {
   }
 
   var State_getAvailableTrans = function() {
-		return this._sgjsm._statesId2Trans[this._curStateId]
+		return this._sgjsm._transitionsByStateId[this.id]
   }
 
   ClassP._injectMethodsIntoState = function(state) {
 		state._sgjsm = this
-		state.getAvailableTrans = State_getAvailableTrans
+		state.getTransitions = State_getAvailableTrans
   }
 
 	var Transition_execute = function() {
 		this._sgjsm._curStateId = this.dstStateId
-    var event = new CustomEvent('transit', { "detail" : { "transtion" : this }})
+    var event = (typeof CustomEvent !== 'undefined' ? new CustomEvent('transit', { "detail" : { "transtion" : this }}) :
+    { "type" : "transit", "detail" : { "transition" : this }})
+
     this._sgjsm.dispatchEvent(event)
+    return this._sgjsm.getCurState()
 	}
 
 	ClassP._injectMethodsIntoTrans = function(transition) {
@@ -74,7 +81,7 @@ define([], function() {
 		}
     this._listeners[this._listenerIdx] = listener
 		if (! this._listenersByType[type]) {
-			this._listenersByType[type] = {}
+			this._listenersByType[type] = []
 		}
 		this._listenersByType[type].push(listener)
     listener.arrayIdx = this._listenersByType[type].length - 1
@@ -103,5 +110,5 @@ define([], function() {
 		}
 	}
 
-  return StopGapJs_sm
+  return StopGapJs_Sm
 })
