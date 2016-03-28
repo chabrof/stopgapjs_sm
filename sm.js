@@ -1,7 +1,7 @@
 define([], function() {
   "use strict"
 
-  var StopGapJs_sm = function() {}
+  var StopGapJs_Sm = function() {}
   var ClassP = StopGapJs_sm.prototype
 
   ClassP.init = function(config) {
@@ -23,12 +23,17 @@ define([], function() {
     // Store transitions which move from states, in hash with state.id as key
     config.transitions.forEach(
       function(transition) {
-        self._transitionsH[transition.id] = transition
+        // pre
+        console.assert(transition.type, "type of transition must be set in transition object")
+        console.assert(transition.srcStateId, "srcStateId must been set in transition object")
+
         if (! self._states2Trans[transition.srcStateId]) {
-          self._statesId2Trans[transition.srcStateId] = []
+          self._statesId2Trans[transition.srcStateId] = {}
         }
-        self._statesId2Trans[transition.srcStateId].push(transition.id)
-      } )
+        console.assert(self._statesId2Trans[transition.srcStateId][transition.type] === undefined, "only one transition of each type is allowed for one state as source of this transition")
+        self._statesId2Trans[transition.srcStateId][transition.type] = transition;
+      })
+    return this
   }
 
   ClassP.getCurState = function() {
@@ -45,7 +50,9 @@ define([], function() {
   }
 
 	var Transition_execute = function() {
-		this._curStateId = this.dstStateId
+		this._sgjsm._curStateId = this.dstStateId
+    var event = new CustomEvent('transit', { "detail" : { "transtion" : this }})
+    this._sgjsm.dispatchEvent(event)
 	}
 
 	ClassP._injectMethodsIntoTrans = function(transition) {
