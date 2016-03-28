@@ -15,6 +15,9 @@
     "amdefine": ">=0.1.0",
     "jsonschema": "1.1.0"
   },
+  "devDependencies": {
+    "mocha": "*"
+  },
   "engines": {
     "node": ">= 0.8"
   },
