@@ -1,3 +1,5 @@
+if (typeof define !== 'function') { var define = require('amdefine')(module); } // we are using amdefine in order to use requirejs
+
 define([], function() {
   "use strict"
 
