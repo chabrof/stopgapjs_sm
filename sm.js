@@ -47,47 +47,47 @@ define([], function() {
   }
 
   var State_getAvailableTrans = function() {
-		return this._sgjsm._transitionsByStateId[this.id]
+    return this._sgjsm._transitionsByStateId[this.id]
   }
 
   ClassP._injectMethodsIntoState = function(state) {
-		state._sgjsm = this
-		state.getTransitions = State_getAvailableTrans
+    state._sgjsm = this
+    state.getTransitions = State_getAvailableTrans
   }
 
-	var Transition_execute = function() {
-		this._sgjsm._curStateId = this.dstStateId
+  var Transition_execute = function() {
+    this._sgjsm._curStateId = this.dstStateId
     var event = (typeof CustomEvent !== 'undefined' ? new CustomEvent('transit', { "detail" : { "transtion" : this }}) :
     { "type" : "transit", "detail" : { "transition" : this }})
 
     this._sgjsm.dispatchEvent(event)
     return this._sgjsm.getCurState()
-	}
-
-	ClassP._injectMethodsIntoTrans = function(transition) {
-		transition._sgjsm = this;
-		transition.execute = Transition_execute;
   }
 
-	ClassP.addEventListener = function(type, cbk) {
+  ClassP._injectMethodsIntoTrans = function(transition) {
+    transition._sgjsm = this;
+    transition.execute = Transition_execute;
+  }
+
+  ClassP.addEventListener = function(type, cbk) {
     // pre
-		console.assert(
+    console.assert(
       typeof type === "string" && typeof cbk === "function" && type && cbk,
       "Arg 'Type' (string) of event must be given, as well as cbk (function)" )
 
     this._listenerIdx++
 
-		var listener = {
-			type 	: type,
-			cbk 	: cbk
-		}
+    var listener = {
+      type  : type,
+      cbk   : cbk
+    }
     this._listeners[this._listenerIdx] = listener
-		if (! this._listenersByType[type]) {
-			this._listenersByType[type] = []
-		}
-		this._listenersByType[type].push(listener)
+    if (! this._listenersByType[type]) {
+      this._listenersByType[type] = []
+    }
+    this._listenersByType[type].push(listener)
     listener.arrayIdx = this._listenersByType[type].length - 1
-	}
+  }
 
   ClassP.removeEventListener = function(listenerIdx) {
     var listener = this._listeners[listenerIdx] = undefined
@@ -98,19 +98,19 @@ define([], function() {
     }
   }
 
-	/*event = new CustomEvent(type, { "detail" : { "exec" : true, "after" : true }})
+  /*event = new CustomEvent(type, { "detail" : { "exec" : true, "after" : true }})
     self.dispatchEvent(event)
-	*/
-	ClassP.dispatchEvent = function(event) {
+  */
+  ClassP.dispatchEvent = function(event) {
     var listeners = this._listenersByType[event.type]
 
-		if (listeners) {
-			for (var ct = 0; ct < listeners.length; ct++) {
-				console.assert(listeners[ct].cbk, 'cbk is not defined for listener')
-				listeners[ct].cbk(event)
-			}
-		}
-	}
+    if (listeners) {
+      for (var ct = 0; ct < listeners.length; ct++) {
+        console.assert(listeners[ct].cbk, 'cbk is not defined for listener')
+        listeners[ct].cbk(event)
+      }
+    }
+  }
 
   return StopGapJs_Sm
 })
